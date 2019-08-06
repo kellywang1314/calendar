@@ -1,7 +1,5 @@
 /**
  * @author liaoyf
- * @notice 不要在此公共组件添加业务代码!
- * 如现有功能不能满足业务需求，添加扩展功能
  * @param props
  * onItemClick:(dateObj)=>{},//点击日历回调 dateObj.date
  * showFestive: true or false,//展示节假日 默认true
@@ -10,7 +8,7 @@
  * startDate: "2017-10-09",//默认今天
  * endDate: "2018-10-09",//默认今天+365
  * displayMonthNum: 12,//展示几个月，默认12
- * customValidDate: false,//根据dateOptions的数据，定制化可点击日期,此时 endDate无效
+ * customValidDate: false,//根据dateOptions的数据，定制化可点击日期,此时endDate无效
  * showToday: true or false,//展示 今天、明天、后天 默认true
  * needFixedMonthHeader: true or false,//滚动时月份头固定，默认为true
  * anchorDate: "2018-02-20" //锚定日期, 为空则不锚定
@@ -61,6 +59,8 @@ const format = date => {
     let dayStr = ('00' + date.getDate()).substr(-2)  
     return `${date.getFullYear()}-${monthStr}-${dayStr}`
 }
+
+//获取当年假日并格式化：一般假日前后出休，为假日调班出
 const formatHolidayInfo = holidayData => {
     let result = {
         workDay: {},
@@ -101,6 +101,7 @@ const formatHolidayInfo = holidayData => {
     })
     return result
 }
+//当年节假日写在配置文件中：要求配置的日期必须4位
 const fetchHoliday = () => {
     return fetch('https://m.ctrip.com/restapi/soa2/12378/json/getGeneralConfigData?key=Holiday')
         .then(response => {
@@ -114,6 +115,7 @@ const fetchHoliday = () => {
             return {}
         })
 }
+//展示星期
 export const WeekHeader = () => {
     const week = ['日', '一', '二', '三', '四', '五', '六']
     return (
@@ -140,13 +142,7 @@ export default class Calendar extends React.PureComponent {
         showMonthHead: true,
         needFixedMonthHeader: true,
         anchorDate: '',
-        dateOptions: {
-            // '2017-10-20':{
-            //     className:'',
-            //     subStr:'test',
-            //     style:{}
-            // }
-        },
+        dateOptions: {},
     }
     constructor(props) {
         super(props)
@@ -249,24 +245,23 @@ export default class Calendar extends React.PureComponent {
         })
     }
     handleClick = dayObj => e => {
-        alert('waawaw')
         this.props.onItemClick(dayObj)
     }
 
-    //对每个月下的天数进行处理
+    //对每个月的天数进行处理:确定单天的数据结构
     dealDays({ year, month }, props, todayObj) {
         const { holidayInfo = {} } = this.state
         const { showFestive, startDate, endDate, anchorDate, dateOptions = {}, customValidDate } = props
         const startDateTimeSpan = new Date(startDate.replace(/-/g, '/')).getTime()
         const endDateTimeSpan = new Date(endDate.replace(/-/g, '/')).getTime()
-        //当前月前面的空天数
+        //当前月前面的空天数：通过获得当前月第一天是星期几来确定空几天
         let emptyDays = new Date(year, month - 1, 1).getDay(),
             dayLists = []
         for (let i = 0; i < emptyDays; i++) {
             dayLists.push({ day: '' })
         }
         //当前月份的天数
-        let days = new Date(year, month, 0).getDate()
+        let days = new Date(year, month, 0).getDate() //获取当前月份总天数，比如8月一共31天
         let monthStr = ('00' + month).substr(-2)
         for (let i = 1; i <= days; i++) {
             let date = `${year}-${monthStr}-${('00' + i).substr(-2)}`
@@ -339,6 +334,8 @@ export default class Calendar extends React.PureComponent {
             }
         })
     }
+
+    //render每个日期
     getMonthView(info, idGenerator) {
         const { showMonth, dayLists } = info
         const monthTitle = (
@@ -384,15 +381,15 @@ export default class Calendar extends React.PureComponent {
         const monthInfos = this.dealMonths(this.props)
         return (
             <div
-                className={'dp_calendar'}
+                className='dp_calendar'
                 ref={ele => {
                     this.calendar = ele
                 }}
             >
                 {this.props.showWeekHead && WeekHeader()}
-                <div className={'flex_column'} style={{ position: 'relative' }}>
+                <div className='flex_column' style={{ position: 'relative' }}>
                     <section
-                        className={'cldunit'}
+                        className='cldunit'
                         style={{
                             overflowY: 'auto',
                             WebkitOverflowScrolling: 'touch',
