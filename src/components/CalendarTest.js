@@ -7,6 +7,7 @@ const calendarStartDate = '2019-07-11'
 const calendarEndDate = '2019-11-01'
 const displayMonthNum = 4
 const DATE_LONG2 = 'YYYYMMDD'
+
 const dailyMinPrices = [{'date':"2019-07-11",'price':832},{'date':"2019-07-06",'price':892},{'date':"2019-07-15",'price':892}]
 let dateOptions = {}
         dailyMinPrices.filter(day => day.isValid !== false)
