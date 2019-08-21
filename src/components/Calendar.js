@@ -204,6 +204,7 @@ export default class Calendar extends React.PureComponent {
         })
     }
     onCalendarScroll = () => {
+        console.log('wa')
         const scrollTop = this.cldContent.scrollTop
         const monthHeadersTop = this.monthHeadersTop
         const length = monthHeadersTop.length

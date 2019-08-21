@@ -58,22 +58,14 @@ export default class CalendarTest extends React.Component{
         return (
         <div>
             <div onClick = {() => this.handleShowCalendar()}> tony chung! </div>
-            <div className="new_mask" style={{display:`${toggle}`}}>
-                <div className="new_bg" onClick={() => this.handleHideCalendar()} />
-                <div className="new_pop_calendar slideInUp">
-                    <div className="hd">
-                        <span  onClick={() => this.handleHideCalendar()}>
-                            取消
-                        </span>
-                        <h4>选择入住日期</h4>
-                    </div>
+            <div className="container" style={{display:`${toggle}`}}>
                     <div className="new_pop_tit">
                         <WeekHeader />
                     </div>
-                    <div className="new_calendar_con">
+                    <div className="">
                         <Calendar
                             showWeekHead={false}
-                            needFixedMonthHeader={false}
+                            needFixedMonthHeader={true}
                             startDate={calendarStartDate}
                             endDate={calendarEndDate}
                             displayMonthNum={displayMonthNum}
@@ -93,10 +85,10 @@ export default class CalendarTest extends React.Component{
                                 return null
                             }}
                             customValidDate={true}
+                            anchorDate={'2019-09-13'}
                         />
                     </div>
                 </div>
-            </div>
         </div>
         )
     }

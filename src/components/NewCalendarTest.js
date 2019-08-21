@@ -2,12 +2,13 @@ import React from 'react'
 import moment from 'moment'
 import { WeekHeader } from './NewCalendar'
 import NewCalendar from './NewCalendar'
+import Calendar from './Calendar'
 //传递参数例子
-const calendarStartDate = '2019-8-16'
+const calendarStartDate = '2019-5-16'
 const calendarEndDate = '2019-11-01'
-const displayMonthNum = 3
+const displayMonthNum = 6
 const DATE_LONG2 = 'YYYYMMDD'
-const dailyMinPrices = [{'date':"2019-07-11",'price':832},{'date':"2019-07-06",'price':892},{'date':"2019-07-15",'price':892}]
+const dailyMinPrices = [{'date':"2019-08-11",'price':832},{'date':"2019-08-22",'price':892},{'date':"2019-09-15",'price':892}]
 let dateOptions = {}
         dailyMinPrices.filter(day => day.isValid !== false)
         .map((day, index) => {
@@ -29,7 +30,7 @@ let dateOptions = {}
             dateOptions[day.date] = {
                 isValid: true,
                 className: day.date === calendarStartDate ? 'cld_daystart' : null,
-                datedom: moment(day.date).isBefore(moment(calendarEndDate).add(1, 'day')) ? [priceInfo] : null,
+                subStr: moment(day.date).isBefore(moment(calendarEndDate).add(1, 'day')) ? [priceInfo] : null,
             }
         })
 export default class NewCalendarTest extends React.Component{
@@ -55,15 +56,19 @@ export default class NewCalendarTest extends React.Component{
         const { toggle } = this.state
         
         return (
-        <div>
+            <div>
             <div onClick = {() => this.handleShowCalendar()}> tony chung! </div>
             <div className="new_mask" style={{display:`${toggle}`}}>
                 <div className="new_bg" onClick={() => this.handleHideCalendar()} />
-                <div className="new_pop_calendar slideInUp">  
+                <div className="new_pop_calendar slideInUp">
+                    <div className="new_pop_tit">
+                        <WeekHeader />
+                    </div>
                         <NewCalendar
                             HeadInfo={{title:'请选择日期',leftbtn:'取消',rightbtn:'确定'}}
                             showWeekHead={true}
-                            //needFixedMonthHeader={false}
+                            showMonthHead = {true}
+                            needFixedMonthHeader={true}
                             startDate={calendarStartDate}
                             endDate={calendarEndDate}
                             MonthNum={displayMonthNum}
@@ -76,6 +81,7 @@ export default class NewCalendarTest extends React.Component{
                             }}
                             itemstyle = {{'WeekHead':{top:'0px',left:'0px'}}}
                             customValidDate={true}
+                            anchorDate={'2019-09-13'}
                         />
                 </div>
             </div>

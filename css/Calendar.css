@@ -38,7 +38,28 @@ body,button,input,select,textarea,h1,h2,h3,h4,h5,h6,.body{font:normal 14px/1.5 "
  .body_ios_hybrid .cal_top_tab+.dp_calendar .cldweek{top:114px;}
  .cldweek li:first-child, .cldweek li:last-child{width:15%;}
  .cldweek li{float:left;width:14%;line-height:25px;text-align:center;color:#999;font-size:12px;}
+ .dp_calendar .flex_column {
+    position: relative;
+    display: -webkit-box;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+            flex-direction: column;
+    box-orient: vertical;
+    -webkit-box-flex: 1;
+            flex: 1;
+	height: 1%; 
+	z-index: 1;}
+ .dp_calendar .flex_column .cldunit {height: 100%;overflow-y: auto;-webkit-overflow-scrolling: touch; }
  .dp_calendar .cldmonth{font-size:14px; text-align:center;height:30px;line-height:30px; background: #f7f7f7; font-family:"PingFangSC-Regular"}
+ .cldmonth_fixed {
+	position: absolute;
+	left: 0;
+	right: 0;
+	z-index: 1;
+	font-size:14px; text-align:center;height:30px;line-height:30px; background: #f7f7f7; font-family:"PingFangSC-Regular";
+	-webkit-transform: translate3d(0, 0, 0);
+			transform: translate3d(0, 0, 0); }
  .dp_calendar .cld_daybox{overflow:hidden; padding: 10px 0;}
  .dp_calendar .cld_daybox li{float:left;width:14%;text-align:center;height:58px;box-sizing:border-box;padding:0;position:relative;}
  .dp_calendar .cld_daybox li:nth-child(7n), .dp_calendar .cld_daybox li:nth-child(7n+1){width:15%;}
@@ -64,10 +85,10 @@ body,button,input,select,textarea,h1,h2,h3,h4,h5,h6,.body{font:normal 14px/1.5 "
  .new_pop_calendar .hd span{display:inline-block; height:44px; width: 44px; text-align: center;  color: #333;}
  .new_pop_calendar .hd .rightbtn{position: absolute; right: 10px;}
  .new_pop_calendar .hd h4{position: absolute;  line-height: 44px;  left:44px; right: 44px; top:0; font-size: 16px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
- .new_calendar_con{height:100%;overflow-y:auto;-webkit-overflow-scrolling: touch;position:relative;}
+ .new_calendar_con{height:100%;overflow-y:auto;-webkit-overflow-scrolling: touch;}
  .new_pop_calendar .dp_calendar{padding-top:0;}
  .new_calendar_con .dp_calendar .cld_daybox em{font-size:16px;}
- .new_pop_tit{position:absolute;left:0;top:0;width:100%;background:#fff;}
+ .new_pop_tit{position:absolute;left:0;top:0;width:100%;background:#fff;z-index: 5;}
  .new_calendar_con .dp_calendar .cld_daybox li{height:56px;}
  .new_pop_tit h3{text-align:center;font-size:16px;padding:10px 0;}
  .new_bottom_close{height:45px;line-height:45px;text-align:center;color:#448AFF;position:absolute;left:0;width:100%;background:#fff;font-size:16px;}

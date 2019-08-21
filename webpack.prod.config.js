@@ -5,12 +5,11 @@ const webpack = require('webpack')
 const path = require('path')
 
 module.exports = {
-    entry: {
-        'index': path.resolve(__dirname, "./src/index.js")
-    },
+    entry: path.resolve(__dirname, "./src/index.js"),
+    
     output: {
-        filename: 'bundle.js',
-        path: path.resolve(__dirname, "./build/")
+        filename: `[name].[contenthash].js`,
+        path: path.resolve(__dirname, "./public/")
     },
     module: {
         rules: [
@@ -33,22 +32,33 @@ module.exports = {
             }
         ]
     },
-    devServer: {
-        contentBase: path.resolve(__dirname, "./build"),
-        hot: true,
-        host: 'localhost',
-        open: true,
-        port: 3002
+    optimization: {
+        runtimeChunk: 'single',
+        splitChunks: {
+          chunks: 'all',
+          maxInitialRequests: Infinity,
+          minSize: 0,
+          cacheGroups: {
+            vendor:{
+                test: /[\\/]node_modules[\\/]/,
+                name:'vender'
+            }
+          }
+        },
     },
     devtool: "cheap-module-eval-source-map",
     plugins: [
         new CleanWebpackPlugin(),
-        new HTMLWebpackPlugin({
-            filename: 'index.html',
-            template: path.resolve(__dirname, './src/index.html'),
-            inject: true,
-            hash: true
-        }),
-        new webpack.HotModuleReplacementPlugin()
+        new uglify()
+        // new webpack.DllReferencePlugin({
+        //     context: __dirname,
+        //     manifest: require('./dll/library/library.json')
+        // }),
+        // new HTMLWebpackPlugin({
+        //     filename: 'index.html',
+        //     template: path.resolve(__dirname, './src/index.html'),
+        //     inject: true,
+        //     hash: true
+        // }),
     ]
 }
