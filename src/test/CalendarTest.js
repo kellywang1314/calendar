@@ -1,14 +1,13 @@
 import React from 'react'
 import moment from 'moment'
-import { WeekHeader } from './Calendar'
-import Calendar from './Calendar'
+import { WeekHeader } from '../components/Calendar'
+import NewCalendar from '../components/Calendar'
 //传递参数例子
-const calendarStartDate = '2019-07-11'
+const calendarStartDate = '2019-5-16'
 const calendarEndDate = '2019-11-01'
-const displayMonthNum = 4
+const displayMonthNum = 6
 const DATE_LONG2 = 'YYYYMMDD'
-
-const dailyMinPrices = [{'date':"2019-07-11",'price':832},{'date':"2019-07-06",'price':892},{'date':"2019-07-15",'price':892}]
+const dailyMinPrices = [{'date':"2019-08-11",'price':832},{'date':"2019-08-22",'price':892},{'date':"2019-09-15",'price':892}]
 let dateOptions = {}
         dailyMinPrices.filter(day => day.isValid !== false)
         .map((day, index) => {
@@ -56,19 +55,23 @@ export default class CalendarTest extends React.Component{
         const { toggle } = this.state
         
         return (
-        <div>
-            <div onClick = {() => this.handleShowCalendar()}> tony chung! </div>
-            <div className="container" style={{display:`${toggle}`}}>
+            <div>
+            <div onClick = {() => this.handleShowCalendar()}> CalendarTest是一个日历组件传参实例，点我查看 </div>
+            <div className="new_mask" style={{display:`${toggle}`}}>
+                <div className="new_bg" onClick={() => this.handleHideCalendar()} />
+                <div className="new_pop_calendar slideInUp">
                     <div className="new_pop_tit">
                         <WeekHeader />
                     </div>
-                    <div className="">
-                        <Calendar
-                            showWeekHead={false}
+                        <NewCalendar
+                            HeadInfo={{title:'请选择日期',leftbtn:'取消',rightbtn:'确定'}}
+                            handleHideCalendar = {this.handleHideCalendar.bind(this)}
+                            showWeekHead={true}
+                            showMonthHead = {true}
                             needFixedMonthHeader={true}
                             startDate={calendarStartDate}
                             endDate={calendarEndDate}
-                            displayMonthNum={displayMonthNum}
+                            MonthNum={displayMonthNum}
                             dateOptions={dateOptions}
                             onItemClick={dayObj => {
                                 alert(dayObj.date)
@@ -76,19 +79,12 @@ export default class CalendarTest extends React.Component{
                                     ? this.handleHideCalendar()
                                     : null
                             }}
-                            idGenerator={dayObj => {
-                                if (dayObj && dayObj.date) {
-                                    return `jid-list-arrival-calendar-${moment(dayObj.date).format(
-                                        DATE_LONG2,
-                                    )}`
-                                }
-                                return null
-                            }}
+                            itemstyle = {{'WeekHead':{top:'0px',left:'0px'}}}
                             customValidDate={true}
                             anchorDate={'2019-09-13'}
                         />
-                    </div>
                 </div>
+            </div>
         </div>
         )
     }

@@ -1,163 +1,68 @@
-/**
- * @author liaoyf
- * @param props
- * onItemClick:(dateObj)=>{},//点击日历回调 dateObj.date
- * showFestive: true or false,//展示节假日 默认true
- * showWeekHead: true or false,//日历上的星期 默认true
- * showMonthHead: true or false,//日历上的月份 默认true
- * startDate: "2017-10-09",//默认今天
- * endDate: "2018-10-09",//默认今天+365
- * displayMonthNum: 12,//展示几个月，默认12
- * customValidDate: false,//根据dateOptions的数据，定制化可点击日期,此时endDate无效
- * showToday: true or false,//展示 今天、明天、后天 默认true
- * needFixedMonthHeader: true or false,//滚动时月份头固定，默认为true
- * anchorDate: "2018-02-20" //锚定日期, 为空则不锚定
- * dateOptions: {//扩展显示 用法见 example
- *  '2017-10-20':{
- *      isValid:true,//此属性 customValidDate 为true时生效
- *      className:'',//当前日期自定义class 内置样式支持 'cld_daymiddle,cld_daystart,cld_dayend'
- *      style:{}//支持不用class 直接写style
- *      subStr:'test', //[<span key={0} className="">123</span>],用数组传进来自定义的 subtitle
- *      //设置 subStr后 subText、subClass不生效
- *      subText:'test'//当前日期子标题 使用的是Span标签
- *      subClass:'',//子标题的class 内置样式支持'cld_text, cld_recommend'
- *      subStyle:{} //字标题style
- *  }
- * }
- */
-import React from 'react'
-//公历节日
-const solarHoliday = {
-    '01-01': '元旦',
-    '02-14': '情人节',
-    '05-01': '劳动节',
-    '06-01': '儿童节',
-    '09-10': '教师节',
-    '10-01': '国庆节',
-    '12-25': '圣诞节',
-}
+/** 
+ *  @author ynan_wang
+ *  @param
+ *      startDate:'2019-08-07' //默认今天
+ *      endDate:'2010-08-07' //默认今天+365
+ *      MonthNum:12 //日历展示的月数，默认12
+ *      itemstyle: //每个模块的自定义样式
+ *      HeadInfo: //日历头部标题，取消，确定
+ *      onItemClick:()=>{} //单击某个日期触发函数，默认空
+ *      isShowMonthTitle:true //是否展示月份，默认true
+ *      isShowWeekend:true //是否展示头部星期，默认true
+ *      isShowFestive:true //是否展示节假日，默认true
+ *      isShowTody:true //是否展示今天/明天/后天
+ *      customValidDate:false //自定义可点击日期
+ *      dateOptions:{  //自定义单个日期展示
+ *          isValid:true  //customValidDate为true才生效
+ *          className:自定义样式
+ *          style:{}：支持style传入样式,
+ *      },
+ *      anchorDate:'2019-08-13' //锚定日期，因为获取不到高度，暂时有问题
+ * **/
 
-//根据起始日期和月数确定日历月范围
-const getIntervalDate = (startDate, displayMonthNum) => {
-    const startObj = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
-    const endObj = new Date(new Date(startObj).setMonth(startDate.getMonth() + displayMonthNum - 1))
-    let outPut = []
-    while (endObj.getTime() - startObj.getTime() >= 0) {
-        outPut.push({
-            year: startObj.getFullYear(),
-            month: startObj.getMonth() + 1,
-        })
-        startObj.setMonth(startObj.getMonth() + 1)
-    }
-    return outPut
-}
+ import React from 'react'
+ import moment from 'moment'
+ import { DATE_LONG1 }  from '../constants/date-format'
+ import { solarHoliday, Holiday } from '../constants/holiday'
 
-//格式化日期:2019-4-5,2019/4/5,2019.4.5 =>2019-04-05
-const format = date => {
-    date = new Date(date)
-    let monthStr = ('00' + (date.getMonth() + 1)).substr(-2)
-    let dayStr = ('00' + date.getDate()).substr(-2)  
-    return `${date.getFullYear()}-${monthStr}-${dayStr}`
-}
-
-//获取当年假日并格式化：一般假日前后出休，为假日调班出
-const formatHolidayInfo = holidayData => {
-    let result = {
-        workDay: {},
-        restDay: {},
-        holiday: {},
-    }
-    const holidayContent = JSON.parse(holidayData.configContent)
-    const holidayArr = holidayContent.Holiday
-    holidayArr.forEach(item => {
-        const { Year: year, HolidayList: holidayList } = item
-        holidayList.forEach(holidayItem => {
-            const {
-                HolidayDay: holidayDay,
-                HolidayCount: holidayCount,
-                StartDay: startDay,
-                EndDay: endDay,
-                HolidayName: holidayName,
-                WorkDay: workDay,
-            } = holidayItem
-
-            holidayDay &&
-                (result.holiday[`${year}-${holidayDay.slice(0, 2)}-${holidayDay.slice(-2)}`] = holidayName)
-            if (workDay) {
-                const workDayArr = workDay.split(',')
-                workDayArr.forEach(workDayItem => {
-                    result.workDay[`${year}-${workDayItem.slice(0, 2)}-${workDayItem.slice(-2)}`] = '班'
-                })
-            }
-            let tempDate = new Date(`${year}/${startDay.slice(0, 2)}/${startDay.slice(-2)}`)
-            const endDate = new Date(`${year}/${endDay.slice(0, 2)}/${endDay.slice(-2)}`)
-            while (tempDate.valueOf() <= endDate.valueOf() && holidayCount) {
-                const monthStr = ('0' + (tempDate.getMonth() + 1)).slice(-2)
-                const dayStr = ('0' + tempDate.getDate()).slice(-2)
-                result.restDay[`${year}-${monthStr}-${dayStr}`] = '休'
-                tempDate = new Date(tempDate.setDate(tempDate.getDate() + 1))
-            }
-        })
-    })
-    return result
-}
-//当年节假日写在配置文件中：要求配置的日期必须4位
-const fetchHoliday = () => {
-    return fetch('https://m.ctrip.com/restapi/soa2/12378/json/getGeneralConfigData?key=Holiday')
-        .then(response => {
-            return response.text().then(responseText => {
-                const responseData = JSON.parse(responseText)
-                const configData = JSON.parse(responseData.rspJsonStr)
-                return formatHolidayInfo(configData.configList[0])
-            })
-        })
-        .catch(() => {
-            return {}
-        })
-}
-//展示星期
-export const WeekHeader = () => {
-    const week = ['日', '一', '二', '三', '四', '五', '六']
-    return (
-        <ul className="cldweek" style={{ overflow: 'visible' }}>
-            {week.map((wk, key) => {
-                return <li key={key}>{wk}</li>
-            })}
-        </ul>
-    )
-}
-const scrollEvents = ['scroll', 'touchmove']
-export default class Calendar extends React.PureComponent {
+ //日历类
+ const scrollEvents = ['scroll', 'touchmove']
+ export default class Calendar extends React.Component{
     static defaultProps = {
-        idGenerator: dayObj => {
-            return null
-        },
-        onItemClick: () => {},
-        showFestive: true,
-        startDate: format(new Date()),
-        endDate: format(new Date().setDate(new Date().getDate() + 365)),
-        displayMonthNum: 12,
-        showToday: true,
+        startDate :moment(new Date()),
+        endDate:moment(new Date()).add(365,'D'),
+        MonthNum:12,
+        itemstyle:{},
+        HeadInfo:{},
+        onItemClick:()=>{},
         showWeekHead: true,
-        showMonthHead: true,
+        showMonthHead:true,
         needFixedMonthHeader: true,
-        anchorDate: '',
-        dateOptions: {},
+        dateOptions:{},
+        customValidDate:true,
+        anchorDate:''
     }
-    constructor(props) {
+    constructor(props){
         super(props)
         this.state = {
             holidayInfo: {},
+            toggle:'block'
         }
         this.monthHeaders = [] //所有月份头DOM
         this.monthHeadersTop = [] //所有月份头距顶部的距离
         this.fixedMonthHeaderTop = 0
-    }
-    componentDidMount() {
-        if (this.props.showFestive) {
-            //获取节日及班休信息
-            this.getHolidayInfo()
+        this.scrollInfo = {
+            scrollTop: 0
         }
+        this.onCalendarScroll = this.onCalendarScroll.bind(this)
+    }
+
+   componentDidMount(){
+        this.getHolidays().then((resp) =>{
+            this.setState({
+                holidayInfo:resp
+            })
+        })  
         this.didTimer && clearTimeout(this.didTimer)
         //和css加载有时序影响，这里一定要加setTimeout
         this.didTimer = setTimeout(() => {
@@ -173,17 +78,12 @@ export default class Calendar extends React.PureComponent {
             }
         }, 0)
     }
-    getHolidayInfo() {
-        fetchHoliday().then(info => {
-            this.setState({
-                holidayInfo: info,
-            })
-        })
-    }
+
     componentWillUnmount() {
         this.didTimer && clearTimeout(this.didTimer)
         this.unbindScrollEvent()
     }
+
     componentDidUpdate(prevProps, prevState) {
         if (this.props.needFixedMonthHeader) {
             this.bindScrollEvent()
@@ -192,6 +92,114 @@ export default class Calendar extends React.PureComponent {
             this.unbindScrollEvent()
         }
     }
+
+    /********************* 月份数据结构化 ********************************/
+    //计算展示的月份
+    dealMonths = (props) =>{
+        let {startDate = '', MonthNum = 0} = props
+        let res = []
+        let startdate = moment(startDate)
+        let enddate = moment(startDate).add(MonthNum,'M')
+        //是否展示今明后
+        let now = moment(new Date()).format(DATE_LONG1)
+        let tomorrow = moment(new Date()).add(1,'day').format(DATE_LONG1)
+        let nexttomorrow = moment(new Date()).add(2,'day').format(DATE_LONG1)
+        let showtoday = {
+            [now]:'今天',
+            [tomorrow]:'明天',
+            [nexttomorrow ]:'后天',
+        }
+        while(enddate.diff(startdate,'M') > 0){
+            let obj = {}, key = `${startdate.get('Y')}-${('00'+(startdate.get('M')+1)).substr(-2)}`
+            obj["showMonth"] = key
+            obj["daylists"] = this.dealDates(key,props,showtoday)
+            res.push(obj)
+            startdate = startdate.add(1,'M')
+        }
+        return res
+    }
+
+    dealDates = (key,props,showtoday) =>{
+        let { dateOptions,isShowFestive,anchorDate,startDate,endDate,customValidDate} = props
+        let { holidayInfo = {} } = this.state
+        let startdate = moment(startDate),enddate = moment(endDate),nowdate = moment(new Date)
+        let daylists = []
+        //计算每个月前面空余几天,通过星期计算，该月第一个月星期几就空几天
+        let empty = moment(key).day()
+        for(let i=0;i<empty;i++){
+            daylists.push({day:''})
+        }
+        //正常的日期
+        let days = moment(key).daysInMonth()
+        let monthinfo = key
+        for(let i=1;i<=days;i++){
+            let date = monthinfo + '-'+('00'+i).substr(-2)
+            let day = i || showtoday[date]
+            let option = dateOptions[date] || {}
+            let holidaystr = '',className= ''
+            //节假日样式处理
+            if(isShowFestive){
+                if(holidayInfo && holidayInfo.length>1){
+                    holidaystr = holidayInfo[workDay][date] || holidayInfo[holiday][date] || holidayInfo[restDay][date]
+                if (holidayInfo[workDay][date]) {
+                    className = 'cld_working'
+                } else if (holidayInfo[restDay][date]) {
+                    className = 'cld_holiday'
+                }
+                }else {
+                    holidaystr = solarHoliday[date]
+                }
+            }
+            if (date === anchorDate) className += ' anchorDate'
+            let isValid = true
+            if (customValidDate) {
+                isValid = option.isValid
+            } else {
+                isValid = !(nowdate < startdate || nowdate > enddate)
+            }
+            let dayObj = {
+                date,
+                day,
+                holidaystr,
+                isValid,
+                option,
+                className,
+            }
+            daylists.push(dayObj)
+        }
+        return daylists
+    }
+
+    //节假日的处理，这个每年都会变，需要配置
+    getHolidays = () =>{
+       return fetch(Holiday).then(response => {
+            return response.text().then(responseText => {
+                const responseData = JSON.parse(responseText)
+                const configData = JSON.parse(responseData.rspJsonStr)
+                return formatHolidayInfo(configData.configList[0])  
+            })
+        })
+    }
+
+    /********************* 事件相关 ********************************/
+    //点击事件
+    handleCancel = () =>{
+
+    }
+
+    handleOk = () => {
+
+    }
+
+    handleClick = dayObj => e => {
+        this.props.onItemClick(dayObj)
+    }
+
+    handleHideCalendar(){
+        this.props.handleHideCalendar() 
+    }
+
+    /* 滚动事件相关 */
     bindScrollEvent() {
         scrollEvents.forEach(event => {
             this.cldContent.removeEventListener(event, this.onCalendarScroll)
@@ -203,36 +211,36 @@ export default class Calendar extends React.PureComponent {
             this.cldContent.removeEventListener(event, this.onCalendarScroll)
         })
     }
-    onCalendarScroll = () => {
-        console.log('wa')
+
+    onCalendarScroll() {
         const scrollTop = this.cldContent.scrollTop
+        this.props.handleScroll && this.props.handleScroll(scrollTop)
         const monthHeadersTop = this.monthHeadersTop
         const length = monthHeadersTop.length
-        for (let i = 0; i < length; i++) {
+        for(let i = 0; i < length; i++){
             let height = monthHeadersTop[i]
-            if (scrollTop >= height && (scrollTop < monthHeadersTop[i + 1] || i === length - 1)) {
-                if (scrollTop > monthHeadersTop[i + 1] - this.monthHeaderHeight) {
-                    this.fixedMonthHeader.style.top =
-                        monthHeadersTop[i + 1] - this.monthHeaderHeight - scrollTop + 'px'
-                } else {
-                    this.fixedMonthHeader.style.top = 0
-                }
+            if(scrollTop >= height && (scrollTop < monthHeadersTop[i + 1] || i === length - 1)){
                 this.fixedMonthHeader.innerHTML = this.monthHeaders[i] && this.monthHeaders[i].innerHTML
                 return
             }
-        }
+        }  
     }
+    //clone一个吸顶元素
     initMonthHeaderFixed() {
-        if (this.monthHeaders.length) {
+        const { showWeekHead } = this.props
+        if(this.monthHeaders.length){
             let currentMonthHeader = this.monthHeaders[0]
             this.monthHeaderHeight = currentMonthHeader.scrollHeight
             this.fixedMonthHeader = currentMonthHeader.cloneNode(true)
-            this.fixedMonthHeader.className = 'cldmonth cldmonth_fixed'
-            this.cldContent.appendChild(this.fixedMonthHeader)
+            this.fixedMonthHeader.className = "cldmonth_fixed"
+            this.fixedMonthHeader.style.position = 'absolute'
+            this.fixedMonthHeader.style.top = '25px'
+            this.cldContent.parentNode.appendChild(this.fixedMonthHeader)
         }
     }
     anchorDate() {
         const anchorDateDom = this.cldContent.getElementsByClassName('anchorDate')[0]
+        console.log(anchorDateDom.getBoundingClientRect())
         if (anchorDateDom) {
             this.cldContent.scrollTop =
                 anchorDateDom.offsetTop + anchorDateDom.parentNode.offsetTop - this.monthHeaderHeight
@@ -240,118 +248,34 @@ export default class Calendar extends React.PureComponent {
     }
     computeMonthHeaderTop() {
         this.monthHeaders = this.cldContent.getElementsByClassName('month_header') || []
-        this.monthHeadersTop = []
-        ;[].forEach.call(this.monthHeaders, item => {
+        this.monthHeadersTop = [];
+        [].forEach.call(this.monthHeaders, item => {
             this.monthHeadersTop.push(item.offsetTop)
         })
     }
-    handleClick = dayObj => e => {
-        this.props.onItemClick(dayObj)
-    }
 
-    //对每个月的天数进行处理:确定单天的数据结构
-    dealDays({ year, month }, props, todayObj) {
-        const { holidayInfo = {} } = this.state
-        const { showFestive, startDate, endDate, anchorDate, dateOptions = {}, customValidDate } = props
-        const startDateTimeSpan = new Date(startDate.replace(/-/g, '/')).getTime()
-        const endDateTimeSpan = new Date(endDate.replace(/-/g, '/')).getTime()
-        //当前月前面的空天数：通过获得当前月第一天是星期几来确定空几天
-        let emptyDays = new Date(year, month - 1, 1).getDay(),
-            dayLists = []
-        for (let i = 0; i < emptyDays; i++) {
-            dayLists.push({ day: '' })
-        }
-        //当前月份的天数
-        let days = new Date(year, month, 0).getDate() //获取当前月份总天数，比如8月一共31天
-        let monthStr = ('00' + month).substr(-2)
-        for (let i = 1; i <= days; i++) {
-            let date = `${year}-${monthStr}-${('00' + i).substr(-2)}`
-            let nowTimeSpan = new Date(date.replace(/-/g, '/'))
-            let day = todayObj[date] || i
-            let option = dateOptions[date] || {}
-            let supStr = ''
-            let className = ''
-            if (showFestive) {
-                //节假日及班休信息
-                if (holidayInfo && Object.keys(holidayInfo).length > 1) {
-                    supStr =
-                        holidayInfo.holiday[date] ||
-                        holidayInfo.workDay[date] ||
-                        holidayInfo.restDay[date] ||
-                        ''
-                    if (holidayInfo.workDay[date]) {
-                        className = 'cld_working'
-                    } else if (holidayInfo.restDay[date]) {
-                        className = 'cld_holiday'
-                    }
-                } else {
-                    supStr = solarHoliday[`${monthStr}-${('00' + i).substr(-2)}`]
-                }
-            }
-            if (date === anchorDate) className += ' anchorDate'
-            let isValid = true
-            if (customValidDate) {
-                isValid = option.isValid
-            } else {
-                isValid = !(nowTimeSpan < startDateTimeSpan || nowTimeSpan > endDateTimeSpan)
-            }
-            let dayObj = {
-                date,
-                day,
-                supStr,
-                isValid,
-                option,
-                className,
-            }
-            dayLists.push(dayObj)
-        }
-        return dayLists
-    }
 
-    //对每个月份进行处理
-    dealMonths(props) {
-        let { startDate = '', displayMonthNum, showToday } = props
-        let dateObj = new Date(startDate.replace(/-/g, '/'))
-        let monthArr = getIntervalDate(dateObj, displayMonthNum)
-        let todayObj = {}
-        if (showToday) {
-            const now = new Date(),
-                day = new Date().getDate(),
-                today = format(new Date()),
-                tomorrow = format(new Date().setDate(day + 1)),
-                afterTomorrow = format(new Date().setDate(day + 2))
-            todayObj = {
-                [today]: '今天',
-                [tomorrow]: '明天',
-                [afterTomorrow]: '后天',
-            }
-        }
-        return monthArr.map(res => {
-            const { year, month } = res
-            let dayLists = this.dealDays({ year, month }, props, todayObj)
-            return {
-                showMonth: `${year}年${month}月`,
-                dayLists,
-            }
-        })
-    }
-
+    /********************* 渲染相关 ********************************/
     //render每个日期
-    getMonthView(info, idGenerator) {
-        const { showMonth, dayLists } = info
+    getMonthView(info,index) {
+        const { showMonth, daylists } = info
         const monthTitle = (
-            <h2 key={showMonth + 'title'} className="cldmonth month_header">
+            <h2 key={showMonth + 'title'} className='cldmonth month_header'>
                 {showMonth}
             </h2>
         )
         const daysDom = (
             <ul className="cld_daybox" key={showMonth}>
-                {dayLists.map((dayObj, key) => {
-                    const { day, isValid, option = {}, supStr, className = '' } = dayObj
+                {daylists.map((dayObj, key) => {
+                    const { day, isValid, option = {}, holidaystr, className = '' } = dayObj
+                    //日期主体部分
                     let style = option.style || {}
-                    let subClass = option.subClass || option.subClass || ''
-                    let optionClass = option.className || option.className || ''
-                    let id = idGenerator(dayObj)
+                    let optionClass = option.className || ''
+                    //日期子类（例如在日期上显示价格等）
+                    let subStr = option.subStr || '' //调用者传递完整的日期子类结构，此时下面三个不生效
+                    let subClass = option.subClass || ''
+                    let subStyle = option.subStyle || ''
+                    let subText = option.subText || ''
                     return (
                         <li
                             key={key}
@@ -360,15 +284,14 @@ export default class Calendar extends React.PureComponent {
                                 className === 'cld_working' && !isValid ? '' : className
                             }`}
                             style={style}
-                            id={id}
                         >
-                            {supStr ? <ins>{supStr}</ins> : null}
+                            {holidaystr ? <ins>{holidaystr}</ins> : null}
                             <em>{day}</em>
-                            {option.subStr ? (
-                                option.subStr
+                            {subStr ? (
+                                subStr
                             ) : (
-                                <span className={subClass} style={option.subStyle}>
-                                    {option.subText}
+                                <span className={subClass} style={{subStyle}}>
+                                    {subText}
                                 </span>
                             )}
                         </li>
@@ -379,32 +302,212 @@ export default class Calendar extends React.PureComponent {
         return this.props.showMonthHead ? [monthTitle, daysDom] : [daysDom]
     }
     render() {
-        const monthInfos = this.dealMonths(this.props)
+        const monthInfos = this.dealMonths(this.props) || []
+        const {itemstyle:{ WeekHead },HeadInfo = {}} = this.props
+        const { toggle } = this.state
         return (
-            <div
-                className='dp_calendar'
-                ref={ele => {
-                    this.calendar = ele
-                }}
-            >
-                {this.props.showWeekHead && WeekHeader()}
-                <div className='flex_column' style={{ position: 'relative' }}>
-                    <section
-                        className='cldunit'
-                        style={{
-                            overflowY: 'auto',
-                            WebkitOverflowScrolling: 'touch',
-                            WebkitFlex: 1,
-                            flex: 1,
-                        }}
-                        ref={ele => (this.cldContent = ele)}
-                    >
-                        {monthInfos.map(info => {
-                            return this.getMonthView(info, this.props.idGenerator)
-                        })}
-                    </section>
+            <div id="calendar" className="new_calendar_con"  ref={ele => (this.cldContent = ele)}>
+                <div className="hd">
+                    {HeadInfo && HeadInfo.leftbtn && <span  onClick={() => this.handleHideCalendar()}>
+                            {HeadInfo.leftbtn}
+                        </span>
+                    }
+                    {HeadInfo && HeadInfo.title && <h4>{HeadInfo.title}</h4>}
+                    {HeadInfo && HeadInfo.rightbtn && <span  className="rightbtn" onClick={() => this.handleHideCalendar() }>
+                        {HeadInfo.rightbtn}
+                    </span>
+                    }
                 </div>
-            </div>
+                {this.props.showWeekHead && 
+                    <div  className="new_pop_tit" style={WeekHead}>
+                        {WeekHeader()}
+                    </div >
+                }
+                <div
+                    className='dp_calendar'
+                    ref={ele => {
+                        this.calendar = ele
+                    }}
+                >
+                    <div className='flex_column' style={{ position: 'relative'}}>
+                        <section
+                            className='cldunit'
+                            style={{
+                                overflowY: 'auto',
+                                WebkitOverflowScrolling: 'touch',
+                                WebkitFlex: 1,
+                                flex: 1,
+                            }}
+                            
+                        >
+                           {monthInfos.map(info => {
+                            return this.getMonthView(info)
+                        })}
+                        </section>
+                    </div>
+                </div>
+        </div>
         )
     }
+ }
+
+ //week头
+export const WeekHeader = () => {
+    const week = ['日', '一', '二', '三', '四', '五', '六']
+    return (
+        <ul className="cldweek">
+            {week.map((wk, key) => {
+                return <li key={key}>{wk}</li>
+            })}
+        </ul>
+    )
+ }
+
+ //该格式还可以直接配置
+ const formatHolidayInfo = holidayData => {
+    let result = {
+        workDay: {},  //调休，即放假前周末上班日期（坑货)，这些日期显示班
+        restDay: {},  // 休
+        holiday: {},  //假日
+    }
+    const holidayContent = JSON.parse(holidayData.configContent)
+    const holidayArr = holidayContent.Holiday
+    console.log(holidayArr)
+    holidayArr.forEach(item => {
+        const { Year: year, HolidayList: holidayList } = item
+        holidayList.forEach(holidayItem => {
+            const {
+                HolidayDay: holidayDay,
+                HolidayCount: holidayCount,
+                StartDay: startDay,
+                EndDay: endDay,
+                HolidayName: holidayName,
+                WorkDay: workDay,
+            } = holidayItem
+
+            //假期开始日期
+            holidayDay &&
+                (result.holiday[`${year}-${holidayDay.slice(0, 2)}-${holidayDay.slice(-2)}`] = holidayName)
+            //调休
+            if (workDay) {
+                const workDayArr = workDay.split(',')
+                workDayArr.forEach(workDayItem => {
+                    result.workDay[`${year}-${workDayItem.slice(0, 2)}-${workDayItem.slice(-2)}`] = '班'
+                })
+            }
+            //假期长度
+            let tempDate = moment(`${year}/${startDay.slice(0, 2)}/${startDay.slice(-2)}`)
+            const endDate = moment(`${year}/${endDay.slice(0, 2)}/${endDay.slice(-2)}`)
+            while (endDate.diff(tempDate)>0 && holidayCount) {
+                const monthStr = ('0' + (tempDate.get("M") + 1)).slice(-2)
+                const dayStr = ('0' + tempDate.get("D")).slice(-2)
+                result.restDay[`${year}-${monthStr}-${dayStr}`] = '休'
+                tempDate = tempDate.add(1,'day')
+            }
+        })
+    })
+    return result
+}
+
+//二分查找
+function binsearch(arr,low,high,target){
+    if(low > high) return -1
+    let mid = Math.floor((low+high)/2)
+    if(arr[mid] > target){
+        return binsearch(arr,low,mid-1,target)
+    }else if(arr[mid] < target){
+        return binsearch(arr,mid+1,high,target)
+    }else{
+        return mid
+    }
+}
+
+//冒泡
+function bubble(arr){
+    for(let i=0;i<arr.length-1;i++){
+        for(let j=0;j<arr.length-i-1;j++){
+            if(arr[j]>arr[j+1]){
+                let temp = arr[j]
+                arr[j]=arr[j+1]
+                arr[j+1]=temp
+            } 
+        }
+    }
+    return arr
+}
+
+//快排
+function quickSort(arr){
+    if(arr.length<=1){
+        return arr
+    }
+    let pos = Math.floor(arr.length/2)
+    let posvalue = arr.splice(pos,1)[0]
+    let low = [],high = []
+    for(let i=0;i<arr.length;i++){
+        if(arr[i]<posvalue){
+            low.push(arr[i])
+        }else{
+            high.push(arr[i])
+        }
+    }
+    return quickSort(low).concat([posvalue],quickSort(high))
+}
+
+//Lazyman
+
+class _Lazyman{
+    constructor(name){
+        this.name = name
+        this.tasks = []
+        let task = () =>{
+            console.log(`Hi! this is ${this.name}`)
+            this.next()
+        }
+        this.tasks.push(task)
+        setTimeout(() => {
+            this.next()
+        },0)
+    }
+
+    next(){
+        let task = this.tasks.shift()
+        task && task()
+    }
+
+    eat(something){
+        let task = () =>{
+            console.log(`Eat ${something}`)
+            this.next()
+        }
+        this.tasks.push(task)
+        return this
+    }
+
+    sleep(time){
+        this._sleep(time,false)
+        return this
+    }
+
+    sleepFirst(time){
+        this._sleep(time,true)
+        return this
+    }
+
+    _sleep(time,first){
+        let task = () =>{
+            setTimeout(() => {
+                console.log(`Wake up ${time}`)
+                this.next()
+            },time*1000)  
+        }
+        if(first){
+            this.tasks.unshift(task)
+        }else{
+            this.tasks.push(task)
+        }
+    }   
+}
+function Lazyman(name){
+    return new _Lazyman(name)
 }

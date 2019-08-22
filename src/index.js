@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import CalendarTest from './components/CalendarTest'
-import NewCalendarTest from './components/NewCalendarTest'
+import CalendarTest from './test/CalendarTest'
 import '../css/Calendar.css'
-ReactDOM.render(<NewCalendarTest />,document.getElementById('wrapper'))
+ReactDOM.render(<CalendarTest />,document.getElementById('wrapper'))

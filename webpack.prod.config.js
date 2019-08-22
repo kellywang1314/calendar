@@ -1,6 +1,6 @@
 const HTMLWebpackPlugin = require('html-webpack-plugin')
-const {CleanWebpackPlugin} = require('clean-webpack-plugin')
-
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const uglify = require('uglifyjs-webpack-plugin');
 const webpack = require('webpack')
 const path = require('path')
 
@@ -9,7 +9,7 @@ module.exports = {
     
     output: {
         filename: `[name].[contenthash].js`,
-        path: path.resolve(__dirname, "./public/")
+        path: path.resolve(__dirname, "./docs/")
     },
     module: {
         rules: [
@@ -49,16 +49,16 @@ module.exports = {
     devtool: "cheap-module-eval-source-map",
     plugins: [
         new CleanWebpackPlugin(),
-        new uglify()
+        new uglify(),
         // new webpack.DllReferencePlugin({
         //     context: __dirname,
         //     manifest: require('./dll/library/library.json')
         // }),
-        // new HTMLWebpackPlugin({
-        //     filename: 'index.html',
-        //     template: path.resolve(__dirname, './src/index.html'),
-        //     inject: true,
-        //     hash: true
-        // }),
+        new HTMLWebpackPlugin({
+            filename: 'index.html',
+            template: path.resolve(__dirname, './src/index.html'),
+            inject: true,
+            hash: true
+        }),
     ]
 }
