@@ -6,7 +6,7 @@
  *      MonthNum:12 //日历展示的月数，默认12
  *      itemstyle: //每个模块的自定义样式
  *      HeadInfo: //日历头部标题，取消，确定
- *      onDateClick:()=>{} //单击某个日期触发函数，默认空
+ *      onItemClick:()=>{} //单击某个日期触发函数，默认空
  *      isShowMonthTitle:true //是否展示月份，默认true
  *      isShowWeekend:true //是否展示头部星期，默认true
  *      isShowFestive:true //是否展示节假日，默认true
@@ -28,6 +28,20 @@
  //日历类
  const scrollEvents = ['scroll', 'touchmove']
  export default class NewCalendar extends React.Component{
+    static defaultProps = {
+        startDate :moment(new Date()),
+        endDate:moment(new Date()).add(365,'D'),
+        MonthNum:12,
+        itemstyle:{},
+        HeadInfo:{},
+        onItemClick:()=>{},
+        showWeekHead=true,
+        showMonthHead = true,
+        needFixedMonthHeader=true,
+        dateOptions={},
+        customValidDate:true,
+        anchorDate:''
+    }
     constructor(props){
         super(props)
         this.state = {
