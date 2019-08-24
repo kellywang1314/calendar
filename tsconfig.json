@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+      "allowUnreachableCode": true,
+      "strict": true,
+      "esModuleInterop": true,
+      "target": "es5",
+      "module": "es6",
+      "noImplicitAny": false,
+      "removeComments": true,
+      "preserveConstEnums": false,
+      "sourceMap": false,
+      "lib": [
+          "dom",
+          "es7"
+      ],
+      "downlevelIteration": true,
+      "moduleResolution": "node",
+      "plugins": [
+          {
+              "name": "typescript-tslint-plugin",
+            }
+        ]
+  }
+}
